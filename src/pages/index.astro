@@ -1,11 +1,63 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// This is the Astro frontmatter (leave it as is)
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>AI Chatbot</title>
+	</head>
+	<body
+		style="font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto;"
+	>
+		<h1>🤖 AI Chatbot</h1>
+		<div
+			id="chat-box"
+			style="border: 1px solid #ccc; padding: 1rem; height: 300px; overflow-y: auto; margin-bottom: 1rem;"
+		>
+			<!-- Chat messages will appear here -->
+		</div>
+		<form id="chat-form">
+			<input
+				type="text"
+				id="user-input"
+				placeholder="Type your message..."
+				required
+				style="width: 80%; padding: 0.5rem;"
+			/>
+			<button type="submit" style="padding: 0.5rem;">Send</button>
+		</form>
+
+		<script type="module">
+			const form = document.getElementById("chat-form");
+			const input = document.getElementById("user-input");
+			const chatBox = document.getElementById("chat-box");
+
+			form.addEventListener("submit", async (e) => {
+				e.preventDefault();
+				const userMessage = input.value.trim();
+				if (!userMessage) return;
+
+				appendMessage("🧑", userMessage);
+				input.value = "";
+
+				// Call local API (we'll add this route soon)
+				const res = await fetch("/api/chat", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ message: userMessage }),
+				});
+
+				const data = await res.json();
+				appendMessage("🤖", data.reply);
+			});
+
+			function appendMessage(sender, text) {
+				const p = document.createElement("p");
+				p.textContent = `${sender}: ${text}`;
+				chatBox.appendChild(p);
+				chatBox.scrollTop = chatBox.scrollHeight;
+			}
+		</script>
+	</body>
+</html>
