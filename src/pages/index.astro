@@ -1,5 +1,5 @@
 ---
-// This is the Astro frontmatter (leave it as is)
+
 ---
 
 <html lang="en">
@@ -7,57 +7,205 @@
 		<meta charset="UTF-8" />
 		<title>AI Chatbot</title>
 	</head>
-	<body
-		style="font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto;"
-	>
-		<h1>🤖 AI Chatbot</h1>
+
+	<body style="margin: 0; background-color: #000; font-family: sans-serif;">
+		<!-- Centered Wrapper -->
 		<div
-			id="chat-box"
-			style="border: 1px solid #ccc; padding: 1rem; height: 300px; overflow-y: auto; margin-bottom: 1rem;"
+			style="
+      max-width: 600px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    "
 		>
-			<!-- Chat messages will appear here -->
+			<h1>🤖 AI Chatbot</h1>
+
+			<!-- 👤 Persona Setup Form -->
+			<form id="persona-form" style="margin-bottom: 2rem;">
+				<label
+					><strong>Chatbot Name:</strong><br />
+					<input
+						type="text"
+						id="name"
+						placeholder="e.g. Zara"
+						required
+						style="width: 100%; padding: 0.5rem;"
+					/>
+				</label><br /><br />
+
+				<label
+					><strong>Character Style:</strong><br />
+					<select id="style" required style="width: 100%; padding: 0.5rem;">
+						<option value="Cyberpunk">Cyberpunk</option>
+						<option value="Fantasy">Fantasy</option>
+						<option value="Gothic">Gothic</option>
+						<option value="Anime">Anime</option>
+						<option value="Space Pirate">Space Pirate</option>
+						<option value="Mystical Forest Spirit"
+							>Mystical Forest Spirit</option
+						>
+					</select>
+				</label><br /><br />
+
+				<label
+					><strong>Personality Traits:</strong><br />
+					<textarea
+						id="traits"
+						placeholder="e.g. witty, sarcastic, loves ramen"
+						required
+						style="width: 100%; padding: 0.5rem;"></textarea>
+				</label><br /><br />
+
+				<button type="submit" style="padding: 0.5rem;">Start Chatting</button>
+			</form>
+
+			<!-- 💬 Chatbox UI -->
+			<div id="chat-ui" style="display: none;">
+				<div
+					id="chat-box"
+					style="
+		border: 1px solid #ccc;
+		padding: 1rem;
+		height: 300px;
+		overflow-y: auto;
+		margin-bottom: 1rem;
+		background: #f9f9f9;
+		border-radius: 8px;
+		display: flex;
+		flex-direction: column;
+	"
+				>
+					<!-- Avatar Image (Sticky) -->
+					<div style="text-align: center; margin-bottom: 1rem; flex-shrink: 0;">
+						<img
+							id="avatar-img"
+							src=""
+							alt="Chatbot Avatar"
+							style="max-width: 120px; border-radius: 50%; display: none;"
+						/>
+					</div>
+
+					<!-- Message Container -->
+					<div id="chat-messages" style="flex-grow: 1; overflow-y: auto;"></div>
+				</div>
+
+				<!-- Messages appear here -->
+			</div>
+
+			<form id="chat-form" style="display: flex; gap: 0.5rem;">
+				<input
+					type="text"
+					id="user-input"
+					placeholder="Type your message..."
+					required
+					style="flex: 1; padding: 0.5rem;"
+				/>
+				<button type="submit" style="padding: 0.5rem;">Send</button>
+			</form>
 		</div>
-		<form id="chat-form">
-			<input
-				type="text"
-				id="user-input"
-				placeholder="Type your message..."
-				required
-				style="width: 80%; padding: 0.5rem;"
-			/>
-			<button type="submit" style="padding: 0.5rem;">Send</button>
-		</form>
+	</body>
 
-		<script type="module">
-			const form = document.getElementById("chat-form");
-			const input = document.getElementById("user-input");
-			const chatBox = document.getElementById("chat-box");
+	<script type="module">
+		let systemPrompt = "";
+		let initialized = false;
 
-			form.addEventListener("submit", async (e) => {
+		document
+			.getElementById("persona-form")
+			.addEventListener("submit", async (e) => {
 				e.preventDefault();
-				const userMessage = input.value.trim();
-				if (!userMessage) return;
+				const name = document.getElementById("name").value.trim();
+				const style = document.getElementById("style").value;
+				const traits = document.getElementById("traits").value.trim();
 
-				appendMessage("🧑", userMessage);
-				input.value = "";
+				systemPrompt = `You are ${name}, a ${style} character who is ${traits}. Reply in character.`;
+				initialized = true;
 
-				// Call local API (we'll add this route soon)
-				const res = await fetch("/api/chat", {
+				document.getElementById("persona-form").style.display = "none";
+				document.getElementById("chat-ui").style.display = "block";
+
+				// 🖼️ Get DALL·E Avatar
+				try {
+					const avatarPrompt = `Portrait of a ${style} character who is ${traits}.`;
+					const avatarRes = await fetch("/api/avatar", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ prompt: avatarPrompt }),
+					});
+
+					const avatarData = await avatarRes.json();
+					const avatarImg = document.getElementById("avatar-img");
+
+					if (avatarData.imageUrl) {
+						avatarImg.src = avatarData.imageUrl;
+						avatarImg.alt = `${name}'s Avatar`;
+						avatarImg.style.display = "inline-block";
+					} else {
+						avatarImg.alt = "Avatar failed to load.";
+						avatarImg.style.display = "none";
+						console.warn("No image URL returned from avatar API.");
+					}
+				} catch (err) {
+					console.error("Avatar generation failed:", err);
+					const avatarImg = document.getElementById("avatar-img");
+					avatarImg.alt = "Error generating avatar.";
+					avatarImg.style.display = "none";
+				}
+
+				// 👋 Get opening message from bot
+				const openingRes = await fetch("/api/chat", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ message: userMessage }),
+					body: JSON.stringify({
+						message: "Say hello to the user.",
+						systemPrompt: systemPrompt,
+					}),
 				});
 
-				const data = await res.json();
-				appendMessage("🤖", data.reply);
+				const openingData = await openingRes.json();
+				appendMessage("🤖", openingData.reply);
 			});
 
-			function appendMessage(sender, text) {
-				const p = document.createElement("p");
-				p.textContent = `${sender}: ${text}`;
-				chatBox.appendChild(p);
-				chatBox.scrollTop = chatBox.scrollHeight;
-			}
-		</script>
-	</body>
+		const form = document.getElementById("chat-form");
+		const input = document.getElementById("user-input");
+		const chatBox = document.getElementById("chat-box");
+		const chatMessages = document.getElementById("chat-messages");
+
+		form.addEventListener("submit", async (e) => {
+			e.preventDefault();
+			if (!initialized) return;
+
+			const userMessage = input.value.trim();
+			if (!userMessage) return;
+
+			appendMessage("🧑", userMessage);
+			input.value = "";
+
+			const res = await fetch("/api/chat", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					message: userMessage,
+					systemPrompt: systemPrompt,
+				}),
+			});
+
+			const data = await res.json();
+			appendMessage("🤖", data.reply);
+		});
+
+		function appendMessage(sender, text) {
+			const p = document.createElement("p");
+			p.textContent = `${sender}: ${text}`;
+			p.style.padding = "0.5rem";
+			p.style.borderRadius = "10px";
+			p.style.margin = "0.3rem 0";
+			p.style.background = sender === "🤖" ? "#eee" : "#d0c4ff";
+			chatMessages.appendChild(p);
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+
+			chatBox.scrollTop = chatBox.scrollHeight;
+		}
+	</script>
 </html>

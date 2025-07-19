@@ -1,7 +1,7 @@
 export const prerender = false;
 
 export async function POST({ request }) {
-  const { message } = await request.json();
+  const { message, systemPrompt } = await request.json();
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -14,7 +14,7 @@ export async function POST({ request }) {
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant. Keep responses short and friendly.",
+          content: systemPrompt || "You are a helpful assistant.",
         },
         {
           role: "user",
