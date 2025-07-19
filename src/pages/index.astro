@@ -1,211 +1,299 @@
----
-
----
-
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<title>AI Chatbot</title>
+		<script
+			defer
+			src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"
+		></script>
+		<script defer src="https://unpkg.com/vanta/dist/vanta.cells.min.js"
+		></script>
 	</head>
 
-	<body style="margin: 0; background-color: #000; font-family: sans-serif;">
-		<!-- Centered Wrapper -->
+	<body
+		style="margin: 0; background-color: #000; font-family: sans-serif; color:white;"
+	>
+		<!-- 🌌 Vanta Background Layer -->
 		<div
-			style="
-      max-width: 600px;
-      margin: 2rem auto;
-      background: white;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-    "
+			id="vanta-bg"
+			style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0;"
 		>
-			<h1>🤖 AI Chatbot</h1>
+		</div>
 
-			<!-- 👤 Persona Setup Form -->
-			<form id="persona-form" style="margin-bottom: 2rem;">
-				<label
-					><strong>Chatbot Name:</strong><br />
-					<input
-						type="text"
-						id="name"
-						placeholder="e.g. Zara"
-						required
-						style="width: 100%; padding: 0.5rem;"
-					/>
-				</label><br /><br />
+		<!-- 💬 Foreground Chat UI Layer -->
+		<div style="position: relative; z-index: 1;">
+			<div
+				style="max-width: 600px; margin: 2rem auto; background: black; border-radius: 16px; padding: 2rem; box-shadow: 0 0 20px rgba(255,255,255,0.1);"
+			>
+				<h1>🤖 AI Chatbot</h1>
 
-				<label
-					><strong>Character Style:</strong><br />
-					<select id="style" required style="width: 100%; padding: 0.5rem;">
-						<option value="Cyberpunk">Cyberpunk</option>
-						<option value="Fantasy">Fantasy</option>
-						<option value="Gothic">Gothic</option>
-						<option value="Anime">Anime</option>
-						<option value="Space Pirate">Space Pirate</option>
-						<option value="Mystical Forest Spirit"
-							>Mystical Forest Spirit</option
+				<!-- 👤 Persona Setup Form -->
+				<form id="persona-form" style="margin-bottom: 2rem;">
+					<label
+						><strong>Gender:</strong><br />
+						<select id="gender" required style="width: 100%; padding: 0.5rem;">
+							<option value="female">Female</option>
+							<option value="male">Male</option>
+						</select>
+					</label><br /><br />
+
+					<label
+						><strong>Ethnicity:</strong><br />
+						<select
+							id="ethnicity"
+							required
+							style="width: 100%; padding: 0.5rem;"
 						>
-					</select>
-				</label><br /><br />
+							<option value="white">White</option>
+							<option value="black">Black</option>
+							<option value="asian">Asian</option>
+							<option value="hispanic">Hispanic</option>
+							<option value="mixed race">Mixed Race</option>
+						</select>
+					</label><br /><br />
 
-				<label
-					><strong>Personality Traits:</strong><br />
-					<textarea
-						id="traits"
-						placeholder="e.g. witty, sarcastic, loves ramen"
-						required
-						style="width: 100%; padding: 0.5rem;"></textarea>
-				</label><br /><br />
+					<label
+						><strong>Hair Color:</strong><br />
+						<select id="hair" required style="width: 100%; padding: 0.5rem;">
+							<option value="blonde">Blonde</option>
+							<option value="brown">Brown</option>
+							<option value="black">Black</option>
+							<option value="red">Red</option>
+							<option value="pink">Pink</option>
+							<option value="blue">Blue</option>
+							<option value="bald">Bald</option>
+						</select>
+					</label><br /><br />
 
-				<button type="submit" style="padding: 0.5rem;">Start Chatting</button>
-			</form>
+					<label
+						><strong>Eye Color:</strong><br />
+						<select id="eyes" required style="width: 100%; padding: 0.5rem;">
+							<option value="blue">Blue</option>
+							<option value="green">Green</option>
+							<option value="brown">Brown</option>
+							<option value="gray">Gray</option>
+							<option value="heterochromia">Heterochromia</option>
+						</select>
+					</label><br /><br />
 
-			<!-- 💬 Chatbox UI -->
-			<div id="chat-ui" style="display: none;">
-				<div
-					id="chat-box"
-					style="
-		border: 1px solid #ccc;
-		padding: 1rem;
-		height: 300px;
-		overflow-y: auto;
-		margin-bottom: 1rem;
-		background: #f9f9f9;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-	"
-				>
-					<!-- Avatar Image (Sticky) -->
-					<div style="text-align: center; margin-bottom: 1rem; flex-shrink: 0;">
-						<img
-							id="avatar-img"
-							src=""
-							alt="Chatbot Avatar"
-							style="max-width: 120px; border-radius: 50%; display: none;"
+					<label
+						><strong>Character Style:</strong><br />
+						<select id="style" required style="width: 100%; padding: 0.5rem;">
+							<option value="Cyberpunk">Cyberpunk</option>
+							<option value="Fantasy">Fantasy</option>
+							<option value="Gothic">Gothic</option>
+							<option value="Anime">Anime</option>
+							<option value="Space Pirate">Space Pirate</option>
+							<option value="Mystical Forest Spirit"
+								>Mystical Forest Spirit</option
+							>
+						</select>
+					</label><br /><br />
+
+					<label
+						><strong>Chatbot Name:</strong><br />
+						<input
+							type="text"
+							id="name"
+							placeholder="e.g. Zara"
+							required
+							style="width: 100%; padding: 0.5rem;"
 						/>
-					</div>
+					</label><br /><br />
 
-					<!-- Message Container -->
-					<div id="chat-messages" style="flex-grow: 1; overflow-y: auto;"></div>
+					<label
+						><strong>Personality Traits (optional):</strong><br />
+						<textarea
+							id="traits"
+							placeholder="e.g. witty, sarcastic, loves ramen"
+							style="width: 100%; padding: 0.5rem;"></textarea>
+					</label><br /><br />
+
+					<button type="submit" style="padding: 0.5rem;">Start Chatting</button>
+				</form>
+
+				<p id="avatar-status" style="display:none; font-style: italic;">
+					Creating avatar, wait a second...
+				</p>
+
+				<!-- 💬 Chatbox UI -->
+				<div id="chat-ui" style="display: none;">
+					<div
+						id="chat-box"
+						style="border: 1px solid #ccc; padding: 1rem; height: 300px; overflow-y: auto; margin-bottom: 1rem; background: black; border-radius: 8px; display: flex; flex-direction: column;"
+					>
+						<div
+							style="text-align: center; margin-bottom: 1rem; flex-shrink: 0;"
+						>
+							<img
+								id="avatar-img"
+								src=""
+								alt="Chatbot Avatar"
+								style="max-width: 120px; border-radius: 50%; display: none;"
+							/>
+						</div>
+						<div id="chat-messages" style="flex-grow: 1; overflow-y: auto;">
+						</div>
+					</div>
 				</div>
 
-				<!-- Messages appear here -->
+				<form id="chat-form" style="display: flex; gap: 0.5rem;">
+					<input
+						type="text"
+						id="user-input"
+						placeholder="Type your message..."
+						required
+						style="flex: 1; padding: 0.5rem;"
+					/>
+					<button type="submit" style="padding: 0.5rem;">Send</button>
+				</form>
 			</div>
-
-			<form id="chat-form" style="display: flex; gap: 0.5rem;">
-				<input
-					type="text"
-					id="user-input"
-					placeholder="Type your message..."
-					required
-					style="flex: 1; padding: 0.5rem;"
-				/>
-				<button type="submit" style="padding: 0.5rem;">Send</button>
-			</form>
 		</div>
-	</body>
 
-	<script type="module">
-		let systemPrompt = "";
-		let initialized = false;
+		<!-- 🤖 App Logic -->
+		<script type="module">
+			let systemPrompt = "";
+			let initialized = false;
 
-		document
-			.getElementById("persona-form")
-			.addEventListener("submit", async (e) => {
-				e.preventDefault();
-				const name = document.getElementById("name").value.trim();
-				const style = document.getElementById("style").value;
-				const traits = document.getElementById("traits").value.trim();
+			document
+				.getElementById("persona-form")
+				.addEventListener("submit", async (e) => {
+					e.preventDefault();
 
-				systemPrompt = `You are ${name}, a ${style} character who is ${traits}. Reply in character.`;
-				initialized = true;
+					const name = document.getElementById("name").value.trim();
+					const style = document.getElementById("style").value;
+					const traits = document.getElementById("traits").value.trim();
+					const gender = document.getElementById("gender").value;
+					const ethnicity = document.getElementById("ethnicity").value;
+					const hair = document.getElementById("hair").value;
+					const eyes = document.getElementById("eyes").value;
 
-				document.getElementById("persona-form").style.display = "none";
-				document.getElementById("chat-ui").style.display = "block";
+					systemPrompt = `You are ${name}, a ${style} character who is ${traits || "friendly and helpful"}. Reply in character.`;
+					initialized = true;
 
-				// 🖼️ Get DALL·E Avatar
-				try {
-					const avatarPrompt = `Portrait of a ${style} character who is ${traits}.`;
-					const avatarRes = await fetch("/api/avatar", {
+					const avatarStatus = document.getElementById("avatar-status");
+					avatarStatus.style.display = "block";
+
+					const avatarPrompt = `Portrait of a ${style.toLowerCase()} ${gender} character with ${eyes} eyes and ${hair} hair, ${ethnicity} ethnicity`;
+
+					try {
+						const avatarRes = await fetch("/api/avatar", {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ prompt: avatarPrompt }),
+						});
+
+						const avatarData = await avatarRes.json();
+						const avatarImg = document.getElementById("avatar-img");
+
+						if (avatarData.imageUrl) {
+							avatarImg.src = avatarData.imageUrl;
+							avatarImg.alt = `${name}'s Avatar`;
+							avatarImg.style.display = "inline-block";
+						} else {
+							avatarImg.alt = "Avatar failed to load.";
+							avatarImg.style.display = "none";
+						}
+					} catch (err) {
+						console.error("Avatar generation failed:", err);
+						const avatarImg = document.getElementById("avatar-img");
+						avatarImg.alt = "Error generating avatar.";
+						avatarImg.style.display = "none";
+					}
+
+					avatarStatus.style.display = "none";
+					document.getElementById("persona-form").style.display = "none";
+					document.getElementById("chat-ui").style.display = "block";
+
+					const openingRes = await fetch("/api/chat", {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({ prompt: avatarPrompt }),
+						body: JSON.stringify({
+							message: "Say hello to the user.",
+							systemPrompt: systemPrompt,
+						}),
 					});
 
-					const avatarData = await avatarRes.json();
-					const avatarImg = document.getElementById("avatar-img");
+					const openingData = await openingRes.json();
+					appendMessage("🤖", openingData.reply);
+				});
 
-					if (avatarData.imageUrl) {
-						avatarImg.src = avatarData.imageUrl;
-						avatarImg.alt = `${name}'s Avatar`;
-						avatarImg.style.display = "inline-block";
-					} else {
-						avatarImg.alt = "Avatar failed to load.";
-						avatarImg.style.display = "none";
-						console.warn("No image URL returned from avatar API.");
-					}
-				} catch (err) {
-					console.error("Avatar generation failed:", err);
-					const avatarImg = document.getElementById("avatar-img");
-					avatarImg.alt = "Error generating avatar.";
-					avatarImg.style.display = "none";
-				}
+			const form = document.getElementById("chat-form");
+			const input = document.getElementById("user-input");
+			const chatBox = document.getElementById("chat-box");
+			const chatMessages = document.getElementById("chat-messages");
 
-				// 👋 Get opening message from bot
-				const openingRes = await fetch("/api/chat", {
+			form.addEventListener("submit", async (e) => {
+				e.preventDefault();
+				if (!initialized) return;
+
+				const userMessage = input.value.trim();
+				if (!userMessage) return;
+
+				appendMessage("🧑", userMessage);
+				input.value = "";
+
+				const res = await fetch("/api/chat", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({
-						message: "Say hello to the user.",
+						message: userMessage,
 						systemPrompt: systemPrompt,
 					}),
 				});
 
-				const openingData = await openingRes.json();
-				appendMessage("🤖", openingData.reply);
+				const data = await res.json();
+				appendMessage("🤖", data.reply);
 			});
 
-		const form = document.getElementById("chat-form");
-		const input = document.getElementById("user-input");
-		const chatBox = document.getElementById("chat-box");
-		const chatMessages = document.getElementById("chat-messages");
+			function appendMessage(sender, text) {
+				const p = document.createElement("p");
+				p.textContent = `${sender}: ${text}`;
+				p.style.padding = "0.5rem";
+				p.style.borderRadius = "10px";
+				p.style.margin = "0.3rem 0";
+				p.style.color = "black"; // ← Add this line
+				p.style.background = sender === "🤖" ? "#eee" : "#d0c4ff";
+				chatMessages.appendChild(p);
+				chatMessages.scrollTop = chatMessages.scrollHeight;
+				chatBox.scrollTop = chatBox.scrollHeight;
+			}
+		</script>
 
-		form.addEventListener("submit", async (e) => {
-			e.preventDefault();
-			if (!initialized) return;
+		<!-- 🎨 Vanta Background Scripts -->
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"
+		></script>
+		<script src="https://unpkg.com/vanta/dist/vanta.cells.min.js"></script>
 
-			const userMessage = input.value.trim();
-			if (!userMessage) return;
+		<script>
+			let vantaEffect;
+			window.addEventListener("DOMContentLoaded", () => {
+				const checkVantaLoaded = () => {
+					if (typeof VANTA === "undefined" || !VANTA.CELLS) {
+						setTimeout(checkVantaLoaded, 100);
+						return;
+					}
+					console.log("✅ VANTA loaded");
 
-			appendMessage("🧑", userMessage);
-			input.value = "";
+					if (vantaEffect) vantaEffect.destroy();
 
-			const res = await fetch("/api/chat", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					message: userMessage,
-					systemPrompt: systemPrompt,
-				}),
+					vantaEffect = VANTA.CELLS({
+						el: "#vanta-bg",
+						mouseControls: true,
+						touchControls: true,
+						gyroControls: false,
+						minHeight: 200.0,
+						minWidth: 200.0,
+						scale: 1.0,
+						scaleMobile: 1.0,
+						color: 0xff0090, // ✅ FIXED key
+						backgroundColor: 0x000000,
+					});
+				};
+				checkVantaLoaded();
 			});
-
-			const data = await res.json();
-			appendMessage("🤖", data.reply);
-		});
-
-		function appendMessage(sender, text) {
-			const p = document.createElement("p");
-			p.textContent = `${sender}: ${text}`;
-			p.style.padding = "0.5rem";
-			p.style.borderRadius = "10px";
-			p.style.margin = "0.3rem 0";
-			p.style.background = sender === "🤖" ? "#eee" : "#d0c4ff";
-			chatMessages.appendChild(p);
-			chatMessages.scrollTop = chatMessages.scrollHeight;
-
-			chatBox.scrollTop = chatBox.scrollHeight;
-		}
-	</script>
+		</script>
+	</body>
 </html>
