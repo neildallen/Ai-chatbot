@@ -1,5 +1,5 @@
 export const prerender = false;
-
+//test
 export async function POST({ request, cookies }) {
   const body = await request.json();
   const { prompt } = body;
